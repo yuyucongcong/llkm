@@ -10,10 +10,9 @@ import 'prismjs/themes/prism.css'
 var md = require('markdown-it')({
   highlight: function (code, lang) {
     try {
-      console.log(Prism.highlight(code, Prism.languages.javascript, 'javascript'))
       return Prism.highlight(code, Prism.languages.javascript, 'javascript');
     } catch (__) {
-      console.log(__)
+      
     }
     return ''; // use external default escaping
   }
@@ -44,7 +43,7 @@ export default {
     position: fixed;
     width: 50%;
     height: 100%;
-    padding: 20px;
+    padding: 20px 20px 150px 20px;
     overflow-y: scroll;
   }
   pre {

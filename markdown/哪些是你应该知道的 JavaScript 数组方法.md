@@ -561,3 +561,5 @@ console.log(newNumbers) // [1, 2, 3, 4, 5]
 - 副作用导致不必要的更变。要知道哪些方法更变你原来的数组。
 - `slice` 和拓展运算符做浅拷贝。 而对象和子数组会分享同样的指引。要小心。
 - “老”的更变数组方法能替代成新的方法。它们由你决定如何处理它们。
+
+来源： https://thomlom.dev/what-you-should-know-about-js-arrays/

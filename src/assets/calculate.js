@@ -4,9 +4,9 @@ export function calculate( article ){
     // replace code
     let clear = article.replace(/[\r\n]/g, "")
                 // 清理 markdown 语法和数字
-                .replace(/```.*```|\*\*|[0-9]/g,'')
+                .replace(/\*|[0-9]/g,'')
                 // 清理符号
-                .replace(/\.|\(\)|;|\#|"|'|\]|\[|`|\)|\(|:|,|!|\?/g,'')
+                .replace(/\.|\(\)|;|\#|"|'|\]|\[|`|\)|\(|:|,|!|\?|\{|\}|\//g,'')
                 // 清理运算符
                 .replace(/\<|\>|\*|\+|\-|\!==|=/g,'')
                 // 清理零宽字符

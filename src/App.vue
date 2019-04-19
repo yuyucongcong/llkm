@@ -13,6 +13,7 @@ ul,li{list-style: none}
 }
 Header{
   padding: 10px 10px 10px 20px;
+  border-bottom: 1px solid rgba(0,0,0,.2);
 }
 Header button{
   margin-right:10px
@@ -130,7 +131,7 @@ import document from './components/document.vue'
 import { articlelist } from './assets/articlelist'
 import { filterData } from './assets/filter'
 import { Header, Layout, Footer, Content } from 'ant-design-vue';
-import { db, storesArticle, storesVocabulary, readVocabulary, init } from './assets/db';
+import { db, storesArticle, storesVocabulary, readVocabulary, init, checkUploaded } from './assets/db';
 import { calculate } from './assets/calculate'
 
 export default {
@@ -138,7 +139,6 @@ export default {
   components: {
     Header,
     Layout,
-    Footer,
     Content,
     document,
   },
@@ -191,15 +191,14 @@ export default {
     } else {
       let data = await db.article.toArray()
       let data2 = await db.articleCN.toArray()
-      this.articlelist = data.map((element)=>{
+      this.articlelist = data.map((element,index)=>{
         return data2.map((ele)=>{
           if(element.key == ele.key){
             return Object.assign({},element,ele)
           } 
-        })[0]
+        })[index]
       })
     }
-    
   },
   methods:{
     showArticleList(){
@@ -224,10 +223,17 @@ export default {
     },
     async onChangeShowArticle(e){
       if(e.target.checked){
-        let data = await db.article.where('key').equals(e.target.value).toArray()
-        let dataCN = await db.articleCN.where('key').equals(e.target.value).toArray()
-        this.article = data[0].article
-        this.articleCN = dataCN[0].articleCN
+        try{
+          let data = await db.article.where('key').equals(e.target.value).toArray()
+          let dataCN = await db.articleCN.where('key').equals(e.target.value).toArray()
+          this.article = data[0].article
+          this.articleCN = dataCN[0].articleCN
+          if(!data[0].article || !dataCN[0].articleCN){
+            this.$message.warn('请检查文章是否已经上传');
+          }
+        }catch(__){
+          this.$message.warn('请检查文章是否已经上传');
+        }
       } else {
         this.article = false
         this.articleCN = false
@@ -235,21 +241,30 @@ export default {
     },
     nothing(info){
       let that = this;
-      const status = info.file.status;
       const reader = new FileReader();
-      reader.onload = function(){
-        storesArticle({
+      reader.onload = async function(){
+        let check = await checkUploaded(info.file.name, articlelist)
+        if(check){
+          that.$message.warn(`文章已经上传过了`)
+        }else{
+          storesArticle({
           title:info.file.name,
           file:this.result
-        },articlelist,(text, status)=>{
-          that.$message.success(`${info.file.name} ${text}`);
-          if(status){
-            let data = that.articlelist
-            data[status.index][status.name] = true
-            that.$set(articlelist,data)
-          }
-        })
-        storesVocabulary(calculate(this.result))
+        },articlelist,(text, src)=>{
+            if(src){
+              let data = that.articlelist
+              data[src.index][src.name] = true
+              that.$set(articlelist,data)
+              that.$message.success(`${info.file.name} ${text}`);
+              if(src.name == 'uploaded'){
+                storesVocabulary(calculate(this.result))
+              }
+            }else{
+              that.$message.warn(`${info.file.name} ${text}`);
+            }
+          })
+        }
+        
       }
       reader.readAsText(info.file);
     }
