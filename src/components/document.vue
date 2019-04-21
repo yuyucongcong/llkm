@@ -1,5 +1,5 @@
 <template>
-  <div class="right" v-html="content">
+  <div class="document" v-html="content">
   </div>
 </template>
 
@@ -19,7 +19,7 @@ var md = require('markdown-it')({
 });
 
 export default {
-  name: 'right',
+  name: 'document',
   props:['art'],
   watch:{
     art(){
@@ -39,7 +39,7 @@ export default {
 </script>
 
 <style>
-  .right{
+  .document{
     position: fixed;
     width: 50%;
     height: 100%;

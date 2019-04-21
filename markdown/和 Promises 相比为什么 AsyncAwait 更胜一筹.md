@@ -1,4 +1,4 @@
-# 为什么 Promises 和 Async/Await 更胜一筹
+# 和 Promises 相比为什么 Async/Await 更胜一筹
 
 在 JavaScript 中异步函数既有优点也有缺点。优点是异步函数不会阻塞，因此，Node.js 特别的快。缺点是异步函数的行为比较绕，特别是在你有时需要等待一个 “callback” 函数完成再去执行下一步。
 

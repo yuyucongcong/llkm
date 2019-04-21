@@ -6,10 +6,10 @@ const db = new Dexie("article_baseDB");
 
 db.version(version).stores({
     base:'init',
-    article:'key,title,article,uploaded',
+    article:'key,title,article,uploaded,total,quantity',
     articleCN:'key,titleCN,articleCN,uploadedCN',
-    vocabulary:'++key,word,count,learning,ban',
-    filter:'vocabulary'
+    vocalbulary:'++key,word,count,learning,ban',
+    filter:'vocalbulary'
 });
  
 db.open();
@@ -34,54 +34,91 @@ async function checkUploaded(title, articleList){
     }
 }
 
-function storesArticle(fileList, articleList, callback){
+async function storesArticle(fileList, articleList){
     let fileName = fileList.title.replace(/\.md$/,'')
     let file = fileList.file
+    let [data,i] = []
     let compared = articleList.some((element, index)=>{
         if(element.title == fileName){
-            db.article.put({
-                key:element.key,
-                title:element.title,
-                article:file,
-                uploaded:true
-            }).then((e)=>{
-                callback('保存完成',{
-                    key:element.key,
-                    index:index,
-                    name:'uploaded'
-                })
-            }).catch((e)=>{
-                callback('保持失败')
-            })
+            [data,i] = [element,index]
             return true
         }else if(element.titleCN == fileName){
-            db.articleCN.put({
-                key:element.key,
-                titleCN:element.titleCN,
-                articleCN:file,
-                uploadedCN:true
-            }).then((e)=>{
-                callback('保存完成',{
-                    key:element.key,
-                    index:index,
-                    name:'uploadedCN'
-                })
-            }).catch((e)=>{
-                callback('保存失败')
-            })
+            [data,i] = [element,index]
             return true
         }
         return false
     })
 
-    !compared && callback('保存失败，请检查文件列表与文件名是否对应')
+    if(data.title == fileName){
+        try{
+            await db.article.put({
+                key:data.key,
+                title:data.title,
+                article:file,
+                total:fileList.total,
+                quantity:fileList.quantity,
+                uploaded:true
+            })
+            return {
+                status:true,
+                src:{
+                    key:data.key,
+                    index:i,
+                    name:'uploaded'
+                },
+                text:'保存成功'
+            }
+        }catch(e){
+            return {
+                status:false,
+                src:{
+                    key:data.key,
+                    index:i,
+                    name:'uploaded'
+                },
+                text:'保存失败'
+            }
+        }
+    }else if(data.titleCN == fileName){
+        try{
+            await db.articleCN.put({
+                key:data.key,
+                titleCN:data.titleCN,
+                articleCN:file,
+                uploadedCN:true
+            })
+            return {
+                status:true,
+                src:{
+                    key:data.key,
+                    index:i,
+                    name:'uploadedCN'
+                },
+                text:'保存成功'
+            }
+        }catch(e){
+            return {
+                status:false,
+                src:{
+                    key:data.key,
+                    index:i,
+                    name:'uploadedCN'
+                },
+                text:'保存失败'
+            }
+        }
+    }
+    
+    return {
+        status:compared,
+        text:compared ? '保存失败，请检查文件列表与文件名是否对应':''
+    }
 }
 
 async function storesVocabulary(vocalbulary){
-    let data = await db.vocabulary.toArray()
+    let data = await db.vocalbulary.toArray()
     if(data.length){
         let newData = []
-        let oldData = []
         vocalbulary.result.forEach((element,index)=>{
             let key = 0;
             let word = data.find((e, i)=>{
@@ -90,7 +127,7 @@ async function storesVocabulary(vocalbulary){
             })
 
             if(word){
-                db.vocabulary.where('word').equals(word.word).modify({
+                db.vocalbulary.where('word').equals(word.word).modify({
                     count: 1*word.count + vocalbulary.count[index]
                 });
                 return
@@ -103,8 +140,7 @@ async function storesVocabulary(vocalbulary){
                 return
             }
         })
-
-        db.vocabulary.bulkAdd(newData)
+        db.vocalbulary.bulkAdd(newData)
     } else {
         let result = vocalbulary.result.map((element, i)=>{
             return {
@@ -113,15 +149,20 @@ async function storesVocabulary(vocalbulary){
                 ban:isFilter(element)
             }
         })
-        db.vocabulary.bulkAdd(result).catch((err)=>{
+        db.vocalbulary.bulkAdd(result).catch((err)=>{
             console.log(err)
         })
+
     }
 
+    return {
+        total:vocalbulary.total,
+        quantity:vocalbulary.quantity
+    }
 }
 
 function readVocabulary(){
-    return db.vocabulary.where('count').above(2).and((element)=> element.ban == "false").reverse().toArray()
+    return db.vocalbulary.where('count').above(2).and((element)=> element.ban == "false").reverse().toArray()
 }
 
 function init(list){

@@ -1,14 +1,12 @@
-import { filter } from './filter'
-
 export function calculate( article ){
     // replace code
     let clear = article.replace(/[\r\n]/g, "")
-                // 清理 markdown 语法和数字
-                .replace(/\*|[0-9]/g,'')
+                // 清理 markdown 语法和数字,英文缩写
+                .replace(/\*|[0-9]|’s|’ll|’re|’m|’t/g,'')
                 // 清理符号
                 .replace(/\.|\(\)|;|\#|"|'|\]|\[|`|\)|\(|:|,|!|\?|\{|\}|\//g,'')
                 // 清理运算符
-                .replace(/\<|\>|\*|\+|\-|\!==|=/g,'')
+                .replace(/\<|\>|\*|\+|\-|\!==|=|-|–/g,'')
                 // 清理零宽字符
                 .replace(/[\u200B-\u200D\uFEFF]/g, '')
                 // 转换大小写
@@ -29,6 +27,8 @@ export function calculate( article ){
 
     return {
         result:result,
-        count:count
+        count:count,
+        total:vocabulary.length,
+        quantity:result.length
     }
 }

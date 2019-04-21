@@ -78,6 +78,24 @@ Header button{
             </template>
           </a-table-column>
           <a-table-column
+            title="单词总数"
+            key="total">
+            <template slot-scope="text, record">
+              <p>
+                {{record.total}}
+              </p>
+            </template>
+          </a-table-column>
+          <a-table-column
+            title="词汇量"
+            key="quantity">
+            <template slot-scope="text, record">
+              <p>
+                {{record.quantity}}
+              </p>
+            </template>
+          </a-table-column>
+          <a-table-column
             title="显示"
             key="show">
             <template slot-scope="text, record">
@@ -114,20 +132,14 @@ Header button{
       @cancel="closeFilter"
       :footer="null"
     >
-    <div>
-      <span>be 动词</span>
-      <p>{{ filterData.be }}</p>
-      <span>动词</span>
-      <p>{{ filterData.verb }}</p>
-      <span>代词</span>
-      <p>{{ filterData.pron }}</p>
-    </div>
+      <filterView v-bind:filterData="filterData"></filterView>
     </a-modal>
   </div>
 </template>
 
 <script>
 import document from './components/document.vue'
+import filter from './components/filter.vue'
 import { articlelist } from './assets/articlelist'
 import { filterData } from './assets/filter'
 import { Header, Layout, Footer, Content } from 'ant-design-vue';
@@ -141,6 +153,7 @@ export default {
     Layout,
     Content,
     document,
+    filterView:filter
   },
   data(){
     
@@ -151,11 +164,7 @@ export default {
       articlelist:[],
       article: '',
       articleCN: '',
-      filterData:{
-        be:'',
-        verb:'',
-        pron:''
-      },
+      filterData:[],
       columns:[{
         title: '英文标题',
         dataIndex: 'title',
@@ -168,6 +177,12 @@ export default {
       },{
         title:'中文文章上传',
         width:'100px'
+      },{
+        title:'单词总数',
+        dataIndex:'total'
+      },{
+        title:'词汇量',
+        dataIndex:'quantity'
       }],
       vocabularyColumns:[{
         title:'单词',
@@ -199,6 +214,7 @@ export default {
         })[index]
       })
     }
+    console.log(this.articlelist)
   },
   methods:{
     showArticleList(){
@@ -247,24 +263,32 @@ export default {
         if(check){
           that.$message.warn(`文章已经上传过了`)
         }else{
-          storesArticle({
-          title:info.file.name,
-          file:this.result
-        },articlelist,(text, src)=>{
-            if(src){
-              let data = that.articlelist
-              data[src.index][src.name] = true
-              that.$set(articlelist,data)
-              that.$message.success(`${info.file.name} ${text}`);
-              if(src.name == 'uploaded'){
-                storesVocabulary(calculate(this.result))
-              }
-            }else{
-              that.$message.warn(`${info.file.name} ${text}`);
+          let data = await storesArticle({
+              title:info.file.name,
+              file:this.result},
+              articlelist)
+
+          let src = data.src
+          let text = data.text
+
+          if(data.status){
+            let content = that.articlelist
+            content[src.index][src.name] = true
+            if(src.name == 'uploaded'){
+              let success = await storesVocabulary(calculate(this.result))
+              await db.article.where('key').equals(src.key).modify({
+                  total:success.total,
+                  quantity:success.quantity
+              }) 
+              content[src.index]['total'] = success.total
+              content[src.index]['quantity'] = success.quantity
             }
-          })
+            that.$set(articlelist,content)
+            that.$message.success(`${info.file.name} ${text}`)
+          }else{
+            // that.$message.warn(`${info.file.name} ${text}`);
+          }
         }
-        
       }
       reader.readAsText(info.file);
     }
