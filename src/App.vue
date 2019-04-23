@@ -48,7 +48,8 @@ Header button{
       @cancel="closeArticleList"
       :footer="null"
     >
-      <p>
+      <div>
+        <p>单词总数：{{ this.vocabularyOfTotal }}，总单词量：{{ this.vacabularyOfAmount }}</p>
         <a-table :dataSource="articlelist" size="small" >
           <a-table-column
             title="标题"
@@ -112,7 +113,7 @@ Header button{
           <p class="ant-upload-text">Click or drag file to this area to upload</p>
           <p class="ant-upload-hint">Support for a single or bulk upload. Strictly prohibit from uploading company data or other band files</p>
         </a-upload-dragger>
-      </p>
+      </div>
     </a-modal>
     <a-modal
       title="词库"
@@ -121,9 +122,10 @@ Header button{
       @cancel="closeVocabulary"
       :footer="null"
     >
-    <p>
+    <div>
+      <p>单词出现频率 <a-input-number :min="2" :max="100" v-model="timeOfNamber" @change="onTimes" style={margin-left:10px} size="small"/> - 总单词量 {{this.vocabularyOfTimes}}</p>
       <a-table :columns="vocabularyColumns" :dataSource="vocabulary" :pagination="{ pageSize: 50 }" :scroll="{ y: 440 }" />
-    </p>
+    </div>
     </a-modal>
     <a-modal
       title="过滤器"
@@ -156,7 +158,6 @@ export default {
     filterView:filter
   },
   data(){
-    
     return {
       showArticleListModal:false,
       showVocabularyModal: false,
@@ -165,6 +166,10 @@ export default {
       article: '',
       articleCN: '',
       filterData:[],
+      timeOfNamber:2,
+      vocabularyOfTimes:0,
+      vocabularyOfTotal:0,
+      vacabularyOfAmount:0,
       columns:[{
         title: '英文标题',
         dataIndex: 'title',
@@ -213,16 +218,37 @@ export default {
           } 
         })[index]
       })
+
+      let total = 0;
+      data.forEach(element => {
+        if(element.total && element.total > 0){
+          total = total + element.total
+        }
+      })
+
+      this.vocabularyOfTotal = total
     }
-    console.log(this.articlelist)
+
+    let vocal = await readVocabulary()
+    vocal.shift()
+    this.vocabulary = vocal
+    this.vocabularyOfTimes = vocal.length
+
+    let vacabularyOfAmount = await readVocabulary(1)
+    this.vacabularyOfAmount = vacabularyOfAmount.length
   },
   methods:{
     showArticleList(){
       this.showArticleListModal = true
     },
     async showVocabulary(){
-      this.vocabulary = await readVocabulary()
       this.showVocabularyModal = true
+    },
+    async onTimes(e){
+      let vocal = await readVocabulary(e)
+      vocal.shift()
+      this.vocabulary = vocal
+      this.vocabularyOfTimes = vocal.length
     },
     showFilter(){
       this.filterData = filterData
@@ -272,21 +298,20 @@ export default {
           let text = data.text
 
           if(data.status){
-            let content = that.articlelist
-            content[src.index][src.name] = true
             if(src.name == 'uploaded'){
               let success = await storesVocabulary(calculate(this.result))
               await db.article.where('key').equals(src.key).modify({
                   total:success.total,
                   quantity:success.quantity
               }) 
-              content[src.index]['total'] = success.total
-              content[src.index]['quantity'] = success.quantity
+              that.articlelist[src.index]['total'] = success.total
+              that.articlelist[src.index]['quantity'] = success.quantity
             }
-            that.$set(articlelist,content)
+            that.articlelist[src.index][src.name] = true
+            that.$set(that.articlelist,src.index,that.articlelist[src.index])
             that.$message.success(`${info.file.name} ${text}`)
           }else{
-            // that.$message.warn(`${info.file.name} ${text}`);
+            that.$message.warn(`${info.file.name} ${text}`);
           }
         }
       }

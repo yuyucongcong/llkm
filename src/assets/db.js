@@ -161,8 +161,8 @@ async function storesVocabulary(vocalbulary){
     }
 }
 
-function readVocabulary(){
-    return db.vocalbulary.where('count').above(2).and((element)=> element.ban == "false").reverse().toArray()
+function readVocabulary(len = 2){
+    return db.vocalbulary.where('count').above(len).and((element)=> element.ban == "false").reverse().toArray()
 }
 
 function init(list){
