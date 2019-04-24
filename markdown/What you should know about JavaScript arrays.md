@@ -1,5 +1,5 @@
 # What you should know about JavaScript arrays
-Let me make a bold statement: **for loops are often useless and make the code hard to read. **When it comes to iterating over an array, finding elements, sorting it or whatever you want, there’s probably an array method out there that you can use.
+Let me make a bold statement: **for loops are often useless and make the code hard to read.** When it comes to iterating over an array, finding elements, sorting it or whatever you want, there’s probably an array method out there that you can use.
 
 However, some of them are still not that known and used despite their usefulness. I’ll do the hard work for you by giving you the useful methods. Consider this article as your guide to JavaScript arrays methods.
 

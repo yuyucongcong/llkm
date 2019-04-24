@@ -51,4 +51,9 @@ export default {
     padding: 20px;
     border-radius: 5px;
   }
+  code {
+    padding: 0 8px;
+    background: #fafafa;
+    border-radius: 3px;
+  }
 </style>

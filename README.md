@@ -30,11 +30,11 @@ npm run serve
 
 ## 文章列表
 
-1.哪些是你应该知道的 JavaScript 数组方法
+1.[哪些是你应该知道的 JavaScript 数组方法](./markdown/哪些是你应该知道的 JavaScript 数组方法.md)
 
-2.和 Promises 相比为什么 AsyncAwait 更胜一筹
+2.[和 Promises 相比为什么 AsyncAwait 更胜一筹](./markdown/和 Promises 相比为什么 AsyncAwait 更胜一筹.md)
 
-3.JavaScript 基础：语法 & 结构
+3.[JavaScript 基础：语法 & 结构](./markdown/JavaScript 基础 语法 & 结构.md)
 
 coming soon...
 
@@ -48,4 +48,4 @@ coming soon...
 
 19.4.23 词库-单词频率可设置和显示单词量。文章列表-新增单词总数和单词量 - 0.1.3
 
-
+19.4.24 优化 markdown 显示，修正部分文章内容错误。 - 0.1.4
